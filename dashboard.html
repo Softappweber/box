@@ -408,9 +408,10 @@ button.primary:active{transform:translateY(0)}
 <section id="photos" class="panel">
   <h2>📸 Photos</h2>
   <div class="filebox" onclick="document.getElementById('photoInput').click()">
-    <div class="filebox-label">Click to choose photos</div>
-    <input id="photoInput" type="file" accept="image/*" multiple>
-  </div>
+  <div class="filebox-label">📸 Click to choose photos</div>
+  <input id="photoInput" type="file" accept="image/*" multiple onchange="showSelectedFiles('photoInput','photoFileNames')">
+</div>
+<div id="photoFileNames" style="margin-bottom:12px;font-size:13px;color:var(--text2);"></div>
   <button class="primary" onclick="uploadFiles('photoInput','photos')">Upload Photos</button>
   <div id="photosList"></div>
 </section>
@@ -442,9 +443,10 @@ button.primary:active{transform:translateY(0)}
 <section id="files" class="panel">
   <h2>📁 Files</h2>
   <div class="filebox" onclick="document.getElementById('fileInput').click()">
-    <div class="filebox-label">Click to choose files</div>
-    <input id="fileInput" type="file" multiple>
-  </div>
+  <div class="filebox-label">📁 Click to choose files</div>
+  <input id="fileInput" type="file" multiple onchange="showSelectedFiles('fileInput','fileFileNames')">
+</div>
+<div id="fileFileNames" style="margin-bottom:12px;font-size:13px;color:var(--text2);"></div>
   <button class="primary" onclick="uploadFiles('fileInput','files')">Upload Files</button>
   <div id="filesList"></div>
 </section>
