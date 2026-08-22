@@ -108,6 +108,7 @@ button.primary:hover{transform:translateY(-2px)}
 const GOOGLE_CLIENT_ID = '703347850795-5qf6vc6nkf4jlip1ojlf0hrr36lm409e.apps.googleusercontent.com';
 const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
 let accessToken = localStorage.getItem('box_access_token') || '';
+let API_URL = '';
 let currentTab = "photos";
 function changeTheme(theme){document.documentElement.setAttribute('data-theme', theme);localStorage.setItem('theme', theme);}
 const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -121,6 +122,17 @@ function connectGoogleDrive(){
   const tokenClient = google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:GOOGLE_SCOPES,callback:async(response)=>{if(response.access_token){accessToken=response.access_token;localStorage.setItem('box_access_token',accessToken);checkLoginStatus();}}});
   tokenClient.requestAccessToken();
 }
+(async function loadConfig(){
+  const params = new URLSearchParams(window.location.search);
+  const user = params.get('user') || 'test';
+  try{
+    const script = document.createElement('script');
+    script.src = './' + user + '/config.js';
+    script.onload = () => {API_URL = USER_CONFIG.apiUrl;checkLoginStatus();};
+    script.onerror = () => {checkLoginStatus();};
+    document.body.appendChild(script);
+  }catch(e){checkLoginStatus();}
+})();
 document.querySelectorAll("nav button").forEach(btn=>{btn.onclick=()=>{currentTab=btn.dataset.tab;document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(currentTab).classList.add("active");loadItems(currentTab);};});
 document.querySelector('nav button[data-tab="photos"]').click();
 function setStatus(t){document.getElementById("status").textContent=t}
@@ -130,18 +142,36 @@ function showUploadProgress(show,percent=0){const c=document.getElementById('upl
 async function loadItems(type){
   if(!accessToken)return;
   setStatus("Loading...");
+  if(type === 'files' || type === 'photos'){
+    try{
+      const response = await fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name,mimeType,size,createdTime,webContentLink)&orderBy=createdTime%20desc',{headers:{'Authorization':'Bearer '+accessToken}});
+      const data = await response.json();
+      if(data.files){render(type,data.files);setStatus("Ready");}
+      else{setStatus("Error");}
+    }catch(e){setStatus("Load error");}
+    return;
+  }
+  if(!API_URL)return;
   try{
-    const response = await fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name,mimeType,size,createdTime,webContentLink)&orderBy=createdTime%20desc',{headers:{'Authorization':'Bearer '+accessToken}});
-    const data = await response.json();
-    if(data.files){render(type,data.files);setStatus("Ready");}
-    else{setStatus("Error");}
-  }catch(e){setStatus("Load error");}
+    const callback="cb_"+Date.now();
+    const script=document.createElement("script");
+    window[callback]=(result)=>{delete window[callback];script.remove();render(type,result.items||[]);setStatus("Ready");};
+    script.src=API_URL+"?action=list&type="+encodeURIComponent(type)+"&callback="+callback;
+    document.body.appendChild(script);
+  }catch(e){setStatus("Load error")}
 }
 function render(type,items){
   const el=document.getElementById(type+"List");
   if(!items.length){el.innerHTML='<div class="empty">Nothing saved yet.</div>';return}
   el.innerHTML=items.map((x,index)=>{
-    const formattedDate = x.createdTime ? formatPremiumDate(x.createdTime) : '';
+    const dateStr = x.date || x.createdTime || '';
+    const formattedDate = dateStr ? formatPremiumDate(dateStr) : '';
+    if(x.kind==="note"){
+      return `<div class="item"><div class="item-title">${esc(x.title)}</div><div>${esc(x.body)}</div><div class="item-meta">${formattedDate}</div></div>`;
+    }
+    if(x.url){
+      return `<div class="item"><div class="item-title">${esc(x.title)}</div><a href="${escAttr(x.url)}" target="_blank" rel="noopener">${esc(x.url)}</a><div class="item-meta">${formattedDate}</div></div>`;
+    }
     const isImage = x.mimeType && x.mimeType.startsWith('image/');
     if(type==='photos' && !isImage) return '';
     if(type==='files' && isImage) return '';
@@ -172,6 +202,47 @@ async function renameItem(type,index){
     if(response.ok){setStatus("Renamed!");loadItems(type);}
     else{setStatus("Failed");alert("Rename failed");}
   }catch(e){setStatus("Error");alert("Error: "+e.message);}
+}
+async function saveBookmark(){
+  const title=document.getElementById("bookmarkTitle").value.trim();
+  const url=document.getElementById("bookmarkUrl").value.trim();
+  if(!title||!url)return alert("Enter title and URL.");
+  setStatus("Saving...");
+  try{
+    await post("save",{type:"bookmarks",title,url});
+    document.getElementById("bookmarkTitle").value="";
+    document.getElementById("bookmarkUrl").value="";
+    await loadItems("bookmarks");
+  }catch(e){setStatus("Save error")}
+}
+async function saveLink(){
+  const title=document.getElementById("linkTitle").value.trim();
+  const url=document.getElementById("linkUrl").value.trim();
+  if(!title||!url)return alert("Enter title and URL.");
+  setStatus("Saving...");
+  try{
+    await post("save",{type:"links",title,url});
+    document.getElementById("linkTitle").value="";
+    document.getElementById("linkUrl").value="";
+    await loadItems("links");
+  }catch(e){setStatus("Save error")}
+}
+async function saveNote(){
+  const title=document.getElementById("noteTitle").value.trim();
+  const body=document.getElementById("noteBody").value.trim();
+  if(!title||!body)return alert("Enter title and note.");
+  setStatus("Saving...");
+  try{
+    await post("save",{type:"notes",title,body});
+    document.getElementById("noteTitle").value="";
+    document.getElementById("noteBody").value="";
+    await loadItems("notes");
+  }catch(e){setStatus("Save error")}
+}
+async function post(action,data={}){
+  const body=new URLSearchParams({action,...data});
+  const r=await fetch(API_URL,{method:"POST",body});
+  return await r.json();
 }
 async function uploadFiles(inputId,type){
   if(!accessToken){alert("Connect first");return;}
