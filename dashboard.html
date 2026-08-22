@@ -386,7 +386,7 @@ button.primary:active{transform:translateY(0)}
   </div>
   <div class="header-right">
     <span id="status">Ready</span>
-    <span id="userEmailDisplay" style="font-size:11px;color:var(--text2);"></span>
+   <!-- <span id="userEmailDisplay" style="font-size:11px;color:var(--text2);"></span> -->
     <select class="theme-select" id="themeSelect" onchange="changeTheme(this.value)">
       <option value="dark">🌙 Dark</option>
       <option value="light">☀️ Light</option>
@@ -632,7 +632,7 @@ async function loadItems(type){
   }catch(e){setStatus("Load error")}
 }
 
-function loadStorageInfo(){
+/* function loadStorageInfo(){
   if(!accessToken) return;
   
   google.script.run
@@ -644,7 +644,7 @@ function loadStorageInfo(){
       }
     })
     .getUserDriveStorageInfo(accessToken);
-}
+}    */
 
   
 // ============ RENDER ITEMS ============
