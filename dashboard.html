@@ -436,9 +436,27 @@ button.primary:active{transform:translateY(0)}
 
 <script>
 // API_URL will be set from URL parameter (passed from links.json redirect)
-const urlParams = new URLSearchParams(window.location.search);
-const API_URL = urlParams.get('api') || localStorage.getItem('apiUrl') || '';
+let API_URL = '';
 
+(async function loadConfig(){
+  const params = new URLSearchParams(window.location.search);
+  const user = params.get('user') || 'test';
+  
+  try{
+    const script = document.createElement('script');
+    script.src = './' + user + '/config.js';
+    script.onload = () => {
+      API_URL = USER_CONFIG.apiUrl;
+      document.querySelector('nav button[data-tab="photos"]').click();
+    };
+    script.onerror = () => {
+      document.getElementById('status').textContent = 'Config not found for: ' + user;
+    };
+    document.body.appendChild(script);
+  }catch(e){
+    document.getElementById('status').textContent = 'Error loading config';
+  }
+})();
 let currentTab = "photos";
 
 // ============ THEME SYSTEM ============
