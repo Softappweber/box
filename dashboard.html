@@ -632,6 +632,21 @@ async function loadItems(type){
   }catch(e){setStatus("Load error")}
 }
 
+function loadStorageInfo(){
+  if(!accessToken) return;
+  
+  google.script.run
+    .withSuccessHandler(data => {
+      if(data.success){
+        // Storage info ko display karo
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = data.usedSpace + ' GB used of ' + data.totalSpace + ' GB';
+      }
+    })
+    .getUserDriveStorageInfo(accessToken);
+}
+
+  
 // ============ RENDER ITEMS ============
 function render(type,items){
   const el=document.getElementById(type+"List");
@@ -725,9 +740,9 @@ async function saveNote(){
 }
 
 // ============ UPLOAD FILES ============
-async function uploadFiles(inputId,type){
-  if(!API_URL){
-    alert("Please connect your cloud first.");
+async function uploadFiles(inputId, type){
+  if(!accessToken){
+    alert("Please connect Google Drive first.");
     return;
   }
   
@@ -738,7 +753,7 @@ async function uploadFiles(inputId,type){
   let completedFiles = 0;
   
   for(const file of files){
-    if(file.size>20*1024*1024){
+    if(file.size > 20*1024*1024){
       alert(file.name+" is over the 20 MB per-file limit.");
       continue;
     }
@@ -746,14 +761,14 @@ async function uploadFiles(inputId,type){
     showUploadProgress(true, (completedFiles / totalFiles) * 100);
     setStatus("Uploading "+file.name+"...");
     
-    const base64=await toBase64(file);
+    const base64 = await toBase64(file);
     
     try{
-      await post("upload",{
-        type,
-        name:file.name,
-        mimeType:file.type||"application/octet-stream",
-        data:base64
+      await new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .uploadFileToUserDrive(file.name, file.type || "application/octet-stream", base64, accessToken);
       });
     }catch(e){
       alert("Upload failed: "+file.name);
@@ -767,6 +782,19 @@ async function uploadFiles(inputId,type){
   document.getElementById(inputId).value="";
   await loadItems(type);
   setStatus("Ready");
+}
+
+  async function deleteUserFile(fileId){
+  if(!accessToken) return;
+  
+  if(confirm('Delete this file?')){
+    google.script.run
+      .withSuccessHandler(() => {
+        loadItems(currentTab);
+        showToast('🗑️', 'File deleted');
+      })
+      .deleteUserDriveFile(fileId, accessToken);
+  }
 }
 
 function toBase64(file){
