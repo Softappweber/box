@@ -485,20 +485,14 @@ function connectGoogleDrive(){
         accessToken = response.access_token;
         localStorage.setItem('box_access_token', accessToken);
         
-        // Get user email
-        try{
-          const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
-          });
-          const userData = await userInfo.json();
-          userEmail = userData.email;
-          localStorage.setItem('box_user_email', userEmail);
-          
-          checkLoginStatus();
-          showToast('✅', 'Google Drive connected!');
-        } catch(e){
-          showToast('❌', 'Login failed');
-        }
+        // Save token to Google Sheet
+        const userName = new URLSearchParams(window.location.search).get('user') || 'test';
+        google.script.run
+          .withSuccessHandler(() => {
+            checkLoginStatus();
+            showToast('✅', 'Google Drive connected!');
+          })
+          .saveUserToken(userName, accessToken);
       }
     }
   });
@@ -528,9 +522,21 @@ let API_URL = '';
     const script = document.createElement('script');
     script.src = './' + user + '/config.js';
     script.onload = () => {
-      API_URL = USER_CONFIG.apiUrl;
-      document.querySelector('nav button[data-tab="photos"]').click();
-    };
+  API_URL = USER_CONFIG.apiUrl;
+  
+  // Check token from sheet
+  const userName = new URLSearchParams(window.location.search).get('user') || 'test';
+  google.script.run
+    .withSuccessHandler(result => {
+      if(result.success && result.token){
+        accessToken = result.token;
+        checkLoginStatus();
+      }
+    })
+    .getUserToken(userName);
+  
+  document.querySelector('nav button[data-tab="photos"]').click();
+};
     script.onerror = () => {
       document.getElementById('status').textContent = 'Config not found for: ' + user;
     };
@@ -687,12 +693,18 @@ function render(type,items){
 
 // ============ RENAME ITEM ============
 async function renameItem(type, index){
-  const newName = prompt('Enter new name:');
+  const currentName = allFiles[index] ? allFiles[index].name : '';
+  const baseName = currentName.replace(/\.[^.]+$/, ''); // Extension hatao
+  const extension = currentName.split('.').pop(); // Extension save karo
+  
+  const newName = prompt('Enter new name:', baseName);
   if(!newName || !newName.trim()) return;
+  
+  const finalName = newName.trim() + '.' + extension;
   
   setStatus("Renaming...");
   try{
-    await post("rename", {type, index, newName: newName.trim()});
+    await post("rename", {type, index, newName: finalName});
     await loadItems(type);
     setStatus("Renamed!");
   }catch(e){
@@ -700,7 +712,6 @@ async function renameItem(type, index){
     alert("Rename failed");
   }
 }
-
 // ============ SAVE FUNCTIONS ============
 async function saveBookmark(){
   const title=document.getElementById("bookmarkTitle").value.trim();
@@ -784,19 +795,6 @@ async function uploadFiles(inputId, type){
   document.getElementById(inputId).value="";
   await loadItems(type);
   setStatus("Ready");
-}
-
-  async function deleteUserFile(fileId){
-  if(!accessToken) return;
-  
-  if(confirm('Delete this file?')){
-    google.script.run
-      .withSuccessHandler(() => {
-        loadItems(currentTab);
-        showToast('🗑️', 'File deleted');
-      })
-      .deleteUserDriveFile(fileId, accessToken);
-  }
 }
 
 function toBase64(file){
