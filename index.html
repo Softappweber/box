@@ -55,20 +55,19 @@ p{font-size:14px;color:#a1a1aa}
 </div>
 
 <script>
-// ============ REDIRECT LOGIC ============
 (async function(){
-  const params = new URLSearchParams(window.location.search);
-  const shortCode = params.get('u') || window.location.pathname.replace('/', '').trim();
+  const path = window.location.pathname;
+  const parts = path.split('/').filter(Boolean);
+  const shortCode = parts[parts.length - 1] || '';
   
   if(!shortCode){
-    document.querySelector('h1').textContent = 'Invalid Link';
-    document.querySelector('p').textContent = 'No user code found';
+    document.querySelector('h1').textContent = 'Box';
+    document.querySelector('p').textContent = 'Your Personal Cloud';
     document.querySelector('.spinner').style.display = 'none';
     return;
   }
   
   try{
-    // Load links.json
     const response = await fetch('links.json');
     const links = await response.json();
     
@@ -78,12 +77,12 @@ p{font-size:14px;color:#a1a1aa}
       window.location.href = targetUrl;
     } else {
       document.querySelector('h1').textContent = 'Link Not Found';
-      document.querySelector('p').textContent = 'This cloud link does not exist';
+      document.querySelector('p').textContent = 'No cloud for: ' + shortCode;
       document.querySelector('.spinner').style.display = 'none';
     }
   } catch(error){
     document.querySelector('h1').textContent = 'Error';
-    document.querySelector('p').textContent = 'Could not load redirect data';
+    document.querySelector('p').textContent = error.message;
     document.querySelector('.spinner').style.display = 'none';
   }
 })();
