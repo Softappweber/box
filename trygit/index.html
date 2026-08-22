@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaGrowth — Marketing That Moves</title>
+
+  <style>
+    :root {
+      --dark: #111827;
+      --muted: #667085;
+      --light: #f7f8fc;
+      --primary: #6c4df6;
+      --secondary: #9b87ff;
+      --white: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--dark);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1120px, 90%);
+      margin: auto;
+    }
+
+    header {
+      padding: 22px 0;
+      position: absolute;
+      width: 100%;
+      z-index: 10;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      color: var(--white);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      color: #c6bbff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      color: #eeeaff;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: #c6bbff;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 13px 22px;
+      border-radius: 30px;
+      background: var(--white);
+      color: var(--primary);
+      font-weight: 700;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .hero {
+      min-height: 700px;
+      display: flex;
+      align-items: center;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,.2), transparent 25%),
+        linear-gradient(135deg, #26186d, #6c4df6 55%, #9b87ff);
+    }
+
+    .hero-content {
+      max-width: 690px;
+      padding-top: 50px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 18px;
+      padding: 7px 14px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 30px;
+      color: #e4deff;
+      font-size: 0.85rem;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 7vw, 5.7rem);
+      line-height: 1.02;
+      letter-spacing: -4px;
+      margin-bottom: 24px;
+    }
+
+    .hero p {
+      max-width: 570px;
+      color: #e5e0ff;
+      font-size: 1.15rem;
+      margin-bottom: 32px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn-outline {
+      border: 1px solid rgba(255,255,255,.5);
+      color: white;
+      background: transparent;
+    }
+
+    section {
+      padding: 90px 0;
+    }
+
+    .section-heading {
+      max-width: 620px;
+      margin-bottom: 45px;
+    }
+
+    .section-heading h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.1;
+      margin-bottom: 15px;
+      letter-spacing: -1.5px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+    }
+
+    .services {
+      background: var(--light);
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .card {
+      padding: 30px;
+      border-radius: 18px;
+      background: var(--white);
+      border: 1px solid #e8e9f0;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 15px 35px rgba(35, 25, 100, .1);
+    }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      border-radius: 13px;
+      background: #eeeaff;
+      color: var(--primary);
+      font-size: 1.4rem;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .results-image {
+      min-height: 370px;
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, rgba(108,77,246,.9), rgba(17,24,39,.8)),
+        repeating-linear-gradient(45deg, transparent 0 12px, rgba(255,255,255,.08) 13px 14px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart {
+      position: absolute;
+      bottom: 35px;
+      left: 35px;
+      right: 35px;
+      height: 180px;
+      border-bottom: 3px solid #fff;
+      border-left: 3px solid #fff;
+      transform: skewY(-12deg);
+    }
+
+    .chart::after {
+      content: "";
+      position: absolute;
+      width: 80%;
+      height: 100%;
+      left: 10%;
+      border-top: 6px solid #c6bbff;
+      border-radius: 50%;
+      transform: rotate(-14deg);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 32px;
+    }
+
+    .stat {
+      padding: 20px;
+      border-radius: 14px;
+      background: var(--light);
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    .stat small {
+      color: var(--muted);
+    }
+
+    .cta {
+      margin: 0 auto;
+      padding: 70px 30px;
+      border-radius: 25px;
+      color: white;
+      text-align: center;
+      background: linear-gradient(135deg, #26186d, #6c4df6);
+    }
+
+    .cta h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      margin-bottom: 15px;
+    }
+
+    .cta p {
+      color: #ded9ff;
+      margin-bottom: 25px;
+    }
+
+    footer {
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        min-height: 640px;
+      }
+
+      .service-grid,
+      .results {
+        grid-template-columns: 1fr;
+      }
+
+      .results-image {
+        min-height: 280px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="container">
+      <nav>
+        <a href="#" class="logo">Nova<span>Growth</span></a>
+
+        <div class="nav-links">
+          <a href="#services">Services</a>
+          <a href="#results">Results</a>
+          <a href="#contact">Contact</a>
+        </div>
+
+        <a href="#contact" class="btn">Let's Talk</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <span class="eyebrow">Creative marketing for ambitious brands</span>
+
+          <h1>Turn attention into growth.</h1>
+
+          <p>
+            We help modern businesses build unforgettable brands, reach the right
+            audience, and turn more clicks into customers.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#contact" class="btn">Start a Project</a>
+            <a href="#services" class="btn btn-outline">Explore Services</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="services" id="services">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Marketing that makes an impact.</h2>
+          <p>
+            From strategy to execution, we create campaigns designed to move
+            your business forward.
+          </p>
+        </div>
+
+        <div class="service-grid">
+          <div class="card">
+            <div class="icon">✦</div>
+            <h3>Brand Strategy</h3>
+            <p>
+              Build a clear, confident brand that connects with your ideal
+              customers and stands out from the competition.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">↗</div>
+            <h3>Digital Advertising</h3>
+            <p>
+              Reach high-value audiences with targeted campaigns optimized for
+              stronger results and better returns.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">◎</div>
+            <h3>Content & Social</h3>
+            <p>
+              Create scroll-stopping content that builds trust, starts
+              conversations, and keeps your brand top of mind.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results">
+      <div class="container">
+        <div class="results">
+          <div class="results-image">
+            <div class="chart"></div>
+          </div>
+
+          <div>
+            <div class="section-heading">
+              <h2>Creative ideas. Measurable results.</h2>
+              <p>
+                We combine sharp strategy, bold creative, and reliable data to
+                create marketing that delivers real business growth.
+              </p>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <strong>3.8x</strong>
+                <small>Average ROAS</small>
+              </div>
+
+              <div class="stat">
+                <strong>+64%</strong>
+                <small>Lead growth</small>
+              </div>
+
+              <div class="stat">
+                <strong>120+</strong>
+                <small>Brands launched</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="container">
+        <div class="cta">
+          <h2>Ready to grow?</h2>
+          <p>Let’s build a marketing engine your business can believe in.</p>
+          <a href="mailto:hello@novagrowth.com" class="btn">hello@novagrowth.com</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 NovaGrowth. Built for ambitious brands.
+  </footer>
+
+</body>
+</html>
