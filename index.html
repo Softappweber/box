@@ -71,20 +71,55 @@ p{font-size:14px;color:#a1a1aa}
     const response = await fetch('links.json');
     const links = await response.json();
     
-    const targetUrl = links[shortCode];
-    
-    if(targetUrl){
-      window.location.href = targetUrl;
-    } else {
-      document.querySelector('h1').textContent = 'Link Not Found';
-      document.querySelector('p').textContent = 'No cloud for: ' + shortCode;
-      document.querySelector('.spinner').style.display = 'none';
-    }
-  } catch(error){
-    document.querySelector('h1').textContent = 'Error';
-    document.querySelector('p').textContent = error.message;
-    document.querySelector('.spinner').style.display = 'none';
+  <script>
+(async function(){
+
+  const params = new URLSearchParams(window.location.search);
+
+  let shortCode = params.get("code");
+
+  if (!shortCode) {
+    const path = window.location.pathname;
+    const parts = path.split("/").filter(Boolean);
+    shortCode = parts[parts.length - 1] || "";
   }
+
+  if (!shortCode || shortCode === "box") {
+    document.querySelector("h1").textContent = "Box";
+    document.querySelector("p").textContent = "Your Personal Cloud";
+    document.querySelector(".spinner").style.display = "none";
+    return;
+  }
+
+  try {
+
+    const response = await fetch("./links.json");
+
+    if (!response.ok) {
+      throw new Error("Unable to load links.json");
+    }
+
+    const links = await response.json();
+
+    const targetUrl = links[shortCode];
+
+    if (targetUrl) {
+      window.location.replace(targetUrl);
+    } else {
+      document.querySelector("h1").textContent = "Link Not Found";
+      document.querySelector("p").textContent =
+        "No cloud found for: " + shortCode;
+      document.querySelector(".spinner").style.display = "none";
+    }
+
+  } catch(error) {
+
+    document.querySelector("h1").textContent = "Error";
+    document.querySelector("p").textContent = error.message;
+    document.querySelector(".spinner").style.display = "none";
+
+  }
+
 })();
 </script>
 </body>
