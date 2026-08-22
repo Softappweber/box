@@ -818,6 +818,25 @@ window.addEventListener('DOMContentLoaded', () => {
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('themeSelect').value = savedTheme;
 });
+
+  function showSelectedFiles(inputId, displayId){
+  const input = document.getElementById(inputId);
+  const display = document.getElementById(displayId);
+  
+  if(input.files.length === 0){
+    display.innerHTML = '';
+    return;
+  }
+  
+  let filesHtml = '';
+  for(let i = 0; i < input.files.length; i++){
+    const file = input.files[i];
+    const sizeKB = (file.size / 1024).toFixed(1);
+    filesHtml += '<div style="padding:6px 0;border-bottom:1px solid var(--border);">📄 ' + file.name + ' <span style="color:var(--text3);font-size:11px;">(' + sizeKB + ' KB)</span></div>';
+  }
+  
+  display.innerHTML = filesHtml;
+}
 </script>
 </body>
 </html>
