@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -358,7 +359,22 @@ button.primary:active{transform:translateY(0)}
 </div>
 <div id="uploadProgressText">Uploading...</div>
 
-<div class="app">
+
+<div id="connectSection" style="display:none;text-align:center;padding:80px 20px;">
+  <div style="max-width:500px;margin:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;box-shadow:var(--shadow-lg);">
+    <div style="font-size:64px;margin-bottom:20px;">🔐</div>
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">Connect Your Google Drive</h2>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:24px;">
+      Apni files ko apne Drive mein securely store karo
+    </p>
+    <button onclick="connectGoogleDrive()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:0;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.3s;">
+      Connect Google Drive
+    </button>
+    <p style="color:var(--text3);font-size:11px;margin-top:16px;">One-time login • Lifetime access</p>
+  </div>
+</div>
+  
+<div class="app" id="mainContent" style="display:none;">
 
 <header>
   <div class="brand">
@@ -370,6 +386,7 @@ button.primary:active{transform:translateY(0)}
   </div>
   <div class="header-right">
     <span id="status">Ready</span>
+    <span id="userEmailDisplay" style="font-size:11px;color:var(--text2);"></span>
     <select class="theme-select" id="themeSelect" onchange="changeTheme(this.value)">
       <option value="dark">🌙 Dark</option>
       <option value="light">☀️ Light</option>
@@ -435,6 +452,69 @@ button.primary:active{transform:translateY(0)}
 </div>
 
 <script>
+
+// ============ GOOGLE OAUTH CONFIG ============
+const GOOGLE_CLIENT_ID = '703347850795-5qf6vc6nkf4jlip1ojlf0hrr36lm409e.apps.googleusercontent.com';
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
+
+let accessToken = localStorage.getItem('box_access_token') || '';
+let userEmail = localStorage.getItem('box_user_email') || '';
+
+// ============ CHECK LOGIN STATUS ============
+function checkLoginStatus(){
+  if(accessToken && userEmail){
+    document.getElementById('connectSection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('userEmailDisplay').textContent = userEmail;
+    loadItems(currentTab);
+  } else {
+    document.getElementById('connectSection').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+  }
+}
+
+// ============ GOOGLE LOGIN ============
+function connectGoogleDrive(){
+  const tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPES,
+    callback: async (response) => {
+      if(response.access_token){
+        accessToken = response.access_token;
+        localStorage.setItem('box_access_token', accessToken);
+        
+        // Get user email
+        try{
+          const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
+          });
+          const userData = await userInfo.json();
+          userEmail = userData.email;
+          localStorage.setItem('box_user_email', userEmail);
+          
+          checkLoginStatus();
+          showToast('✅', 'Google Drive connected!');
+        } catch(e){
+          showToast('❌', 'Login failed');
+        }
+      }
+    }
+  });
+  
+  tokenClient.requestAccessToken();
+}
+
+// ============ LOGOUT ============
+function disconnectGoogleDrive(){
+  localStorage.removeItem('box_access_token');
+  localStorage.removeItem('box_user_email');
+  accessToken = '';
+  userEmail = '';
+  checkLoginStatus();
+  showToast('👋', 'Disconnected');
+}
+
+  
 // API_URL will be set from URL parameter (passed from links.json redirect)
 let API_URL = '';
 
@@ -700,6 +780,14 @@ function toBase64(file){
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function escAttr(s){return esc(s)}
+
+  // Page load pe login status check
+window.addEventListener('DOMContentLoaded', () => {
+  checkLoginStatus();
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeSelect').value = savedTheme;
+});
 </script>
 </body>
 </html>
