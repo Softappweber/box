@@ -680,14 +680,14 @@ function render(type,items){
       </div>`;
     }
     
-    return `<div class="item">
-      <div class="item-title">${esc(x.name || "File")}</div>
-      ${x.fileUrl ? `<a href="${escAttr(x.fileUrl)}" target="_blank">Open file</a>` : ''}
-      <div class="item-meta">${formattedDate}</div>
-      <div class="item-actions">
-        <button class="item-action-btn" onclick="renameItem('${type}', ${index})">✏️ Rename</button>
-      </div>
-    </div>`;
+   return `<div class="item" data-file-id="${esc(x.id || '')}">
+  <div class="item-title">${esc(x.name || "File")}</div>
+  ${x.fileUrl ? `<a href="${escAttr(x.fileUrl)}" target="_blank">Open file</a>` : ''}
+  <div class="item-meta">${formattedDate}</div>
+  <div class="item-actions">
+    <button class="item-action-btn" onclick="renameItem('${type}', ${index})">✏️ Rename</button>
+  </div>
+</div>`;
   }).join("");
 }
 
