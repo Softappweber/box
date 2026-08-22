@@ -802,29 +802,31 @@ function render(type,items){
 
 // ============ RENAME ITEM ============
 async function renameItem(type, index){
-  let currentName = '';
-  
-  // File ka naam dhundho
-  if(type === 'files' || type === 'photos'){
-    const items = document.querySelectorAll('#' + type + 'List .item');
-    if(items[index]){
-      const titleEl = items[index].querySelector('.item-title');
-      if(titleEl) currentName = titleEl.textContent;
-    }
-  } else {
-    // Bookmarks, notes, links ke liye
-    const items = document.querySelectorAll('#' + type + 'List .item');
-    if(items[index]){
-      const titleEl = items[index].querySelector('.item-title');
-      if(titleEl) currentName = titleEl.textContent;
-    }
+  if(!accessToken){
+    alert("Please connect Google Drive first.");
+    return;
   }
   
-  if(!currentName){
+  // DOM se file ka naam aur ID nikaalo
+  const items = document.querySelectorAll('#' + type + 'List .item');
+  if(!items[index]){
     alert('File not found');
     return;
   }
   
+  const item = items[index];
+  const titleEl = item.querySelector('.item-title');
+  const currentName = titleEl ? titleEl.textContent.trim() : '';
+  
+  // File ID nikaalo (data attribute se)
+  const fileId = item.getAttribute('data-file-id') || '';
+  
+  if(!currentName){
+    alert('Cannot read file name');
+    return;
+  }
+  
+  // Extension alag karo
   const baseName = currentName.replace(/\.[^.]+$/, '');
   const extension = currentName.includes('.') ? currentName.split('.').pop() : '';
   
@@ -834,14 +836,18 @@ async function renameItem(type, index){
   const finalName = extension ? newName.trim() + '.' + extension : newName.trim();
   
   setStatus("Renaming...");
-  try{
-    await post("rename", {type, index, newName: finalName});
-    await loadItems(type);
-    setStatus("Renamed!");
-  }catch(e){
-    setStatus("Rename error");
-    alert("Rename failed");
-  }
+  
+  google.script.run
+    .withSuccessHandler(result => {
+      if(result.success){
+        setStatus("Renamed!");
+        loadItems(type);
+      } else {
+        setStatus("Rename failed");
+        alert("Rename failed: " + result.error);
+      }
+    })
+    .renameUserDriveFile(fileId, finalName, accessToken);
 }
 // ============ SAVE FUNCTIONS ============
 async function saveBookmark(){
@@ -965,6 +971,33 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   
   display.innerHTML = filesHtml;
+}
+
+  function renameUserDriveFile(fileId, newName, accessToken) {
+  try {
+    const url = 'https://www.googleapis.com/drive/v3/files/' + fileId;
+    
+    const options = {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify({ name: newName }),
+      muteHttpExceptions: true
+    };
+    
+    const response = UrlFetchApp.fetch(url, options);
+    const result = JSON.parse(response.getContentText());
+    
+    if (result.id) {
+      return { success: true, name: result.name };
+    } else {
+      return { success: false, error: result.error || 'Rename failed' };
+    }
+  } catch(error) {
+    return { success: false, error: error.toString() };
+  }
 }
 </script>
 </body>
