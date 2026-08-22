@@ -56,23 +56,6 @@ p{font-size:14px;color:#a1a1aa}
 
 <script>
 (async function(){
-  const path = window.location.pathname;
-  const parts = path.split('/').filter(Boolean);
-  const shortCode = parts[parts.length - 1] || '';
-  
-  if(!shortCode){
-    document.querySelector('h1').textContent = 'Box';
-    document.querySelector('p').textContent = 'Your Personal Cloud';
-    document.querySelector('.spinner').style.display = 'none';
-    return;
-  }
-  
-  try{
-    const response = await fetch('links.json');
-    const links = await response.json();
-    
-  <script>
-(async function(){
 
   const params = new URLSearchParams(window.location.search);
 
