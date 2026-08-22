@@ -693,14 +693,36 @@ function render(type,items){
 
 // ============ RENAME ITEM ============
 async function renameItem(type, index){
-  const currentName = allFiles[index] ? allFiles[index].name : '';
-  const baseName = currentName.replace(/\.[^.]+$/, ''); // Extension hatao
-  const extension = currentName.split('.').pop(); // Extension save karo
+  let currentName = '';
+  
+  // File ka naam dhundho
+  if(type === 'files' || type === 'photos'){
+    const items = document.querySelectorAll('#' + type + 'List .item');
+    if(items[index]){
+      const titleEl = items[index].querySelector('.item-title');
+      if(titleEl) currentName = titleEl.textContent;
+    }
+  } else {
+    // Bookmarks, notes, links ke liye
+    const items = document.querySelectorAll('#' + type + 'List .item');
+    if(items[index]){
+      const titleEl = items[index].querySelector('.item-title');
+      if(titleEl) currentName = titleEl.textContent;
+    }
+  }
+  
+  if(!currentName){
+    alert('File not found');
+    return;
+  }
+  
+  const baseName = currentName.replace(/\.[^.]+$/, '');
+  const extension = currentName.includes('.') ? currentName.split('.').pop() : '';
   
   const newName = prompt('Enter new name:', baseName);
   if(!newName || !newName.trim()) return;
   
-  const finalName = newName.trim() + '.' + extension;
+  const finalName = extension ? newName.trim() + '.' + extension : newName.trim();
   
   setStatus("Renaming...");
   try{
